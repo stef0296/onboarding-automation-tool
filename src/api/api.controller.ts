@@ -9,6 +9,7 @@ import {
     BadRequestException,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { CsvService } from '../csv/csv.service';
 
 export const FileBuffer = createParamDecorator(
     (data: unknown, ctx: ExecutionContext) => {
@@ -20,15 +21,20 @@ export const FileBuffer = createParamDecorator(
 
 @Controller('api')
 export class ApiController {
+
+    constructor(
+        private readonly csvService: CsvService
+    ) { }
+
     @Put('/upload/:fileName')
-    async webGetContentConfigListing(
+    async uploadCsvFile(
         @Headers() headers,
         @Res() response: Response,
         @FileBuffer() fileBuffer,
     ): Promise<any> {
         try {
             if (fileBuffer === null) throw new BadRequestException('File is required');
-            console.log(`body type: ${fileBuffer}`);
+            let parsedData = await this.csvService.parseCSV(fileBuffer, ';');
             return response.status(HttpStatus.OK).json('Upload Success!!');
         } catch (err) {
             console.log(err);
