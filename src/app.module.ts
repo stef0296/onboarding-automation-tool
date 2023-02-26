@@ -1,24 +1,33 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
+import { RouteInfo } from '@nestjs/common/interfaces';
+import { ConfigModule } from '@nestjs/config';
+import { ApiController } from './api/api.controller';
+import { FileBufferMiddleware } from './middleware/filebuffer.middleware';
+import { ApiModule } from './api/api.module';
 import { CsvService } from './csv/csv.service';
-import { FtpService } from './ftp/ftp.service';
-import { TranslateService } from './translate/translate.service';
-import { ShopifyService } from './shopify/shopify.service';
-import { DbService } from './db/db.service';
-import { SchedulerService } from './scheduler/scheduler.service';
+
+// This is an array of routes we want raw body parsing to be available on
+const rawBodyParsingRoutes: Array<RouteInfo> = [
+  {
+    path: '/api/upload/:fileName',
+    method: RequestMethod.PUT,
+  },
+]
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [
-    AppService,
-    CsvService,
-    FtpService,
-    TranslateService,
-    ShopifyService,
-    DbService,
-    SchedulerService
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    ApiModule,
   ],
+  controllers: [ApiController],
+  providers: [CsvService]
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  public configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
+    consumer
+      .apply(FileBufferMiddleware)
+      .forRoutes(...rawBodyParsingRoutes);
+  }
+}
