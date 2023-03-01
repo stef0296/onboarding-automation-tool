@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { CsvService } from '../csv/csv.service';
+import { DbService } from '../db/db.service';
+import { InternalProduct } from '../interfaces/product.interface';
 
 export const FileBuffer = createParamDecorator(
     (data: unknown, ctx: ExecutionContext) => {
@@ -23,7 +25,8 @@ export const FileBuffer = createParamDecorator(
 export class ApiController {
 
     constructor(
-        private readonly csvService: CsvService
+        private readonly csvService: CsvService,
+        private readonly dbService: DbService,
     ) { }
 
     @Put('/upload/:fileName')
@@ -34,7 +37,13 @@ export class ApiController {
     ): Promise<any> {
         try {
             if (fileBuffer === null) throw new BadRequestException('File is required');
-            let parsedData = await this.csvService.parseCSV(fileBuffer, ';');
+
+            // parse data from raw buffer
+            let skuData: string[] = await this.csvService.parseCSV(fileBuffer, ';');
+
+            // fetch product data from DB
+            let dbData: InternalProduct[] = await this.dbService.getProducts(skuData);
+
             return response.status(HttpStatus.OK).json('Upload Success!!');
         } catch (err) {
             console.log(err);
