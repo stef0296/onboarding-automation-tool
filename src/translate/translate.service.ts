@@ -12,7 +12,12 @@ export class TranslateService {
         translate.key = this.configService.get('DEEPL_KEY')
     }
 
-    async translate(value: string, from: string = 'en', to: string = 'es') {
-        await translate(value, { from: from, to: to });
+    async translateContent(
+        value: string,
+        from: string = 'en',
+        to: string = 'es'
+    ): Promise<string> {
+        if (!value) return '';
+        return await translate(value, { from: from, to: to });
     }
 }
