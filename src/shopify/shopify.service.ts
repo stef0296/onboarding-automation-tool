@@ -20,6 +20,11 @@ export class ShopifyService {
         this.shopifyInstance = new Shopify(config);
     }
 
+    /**
+     * Fetch product data from shopify
+     * @param ids Array of product IDs
+     * @returns 
+     */
     async fetchProducts(ids: string[]) {
         let variants: Shopify.IProductVariant[];
         let params = {

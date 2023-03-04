@@ -9,6 +9,13 @@ export class TranslateService {
         private readonly configService: ConfigService,
     ) { }
 
+    /**
+     * Translate string value from English to Spanish.
+     * @param value String value to be translated
+     * @param from Base language. Default is English
+     * @param to Language the string should be translated to. Default is Spanish
+     * @returns 
+     */
     async translateContent(
         value: string,
         from: string = 'en',

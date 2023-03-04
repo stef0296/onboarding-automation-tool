@@ -13,6 +13,12 @@ export class SchedulerService {
         private schedulerRegistry: SchedulerRegistry
     ) { }
 
+    /**
+     * Method to run a scheduled Task.
+     * The interval time is fixed at 10 minutes.
+     * @param runTask method that should be run every 10 minutes
+     * @param skuData List of SKU ids to update
+     */
     runScheduledTask(runTask, skuData: string[]) {
         let job: CronJob = this.schedulerRegistry.getCronJob(this.taskName);
         let isFirstUpload = true;
@@ -30,6 +36,9 @@ export class SchedulerService {
         this.logger.log('Scheduled task started');
     }
 
+    /**
+     * Cancel a previously running scheduled task
+     */
     cancelScheduledTask() {
         const job = this.schedulerRegistry.getCronJob(this.taskName);
         if (job) {

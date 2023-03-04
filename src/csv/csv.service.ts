@@ -7,6 +7,12 @@ import { ExportProduct } from '../interfaces/product.interface';
 export class CsvService {
     private readonly logger = new Logger(CsvService.name);
 
+    /**
+     * Method to read product data
+     * @param data CSV buffer data
+     * @param delimiter Default delimiter used is ';'
+     * @returns 
+     */
     parseCSV(data, delimiter: string = ';'): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
             csv.parse(data, { delimiter: delimiter, columns: false }, (err, records, info) => {
@@ -29,6 +35,13 @@ export class CsvService {
         });
     }
 
+    /**
+     * Method to save product data to a CSV file
+     * @param fileName relative file path for where the file must be saved
+     * @param data An Array of `ExportProduct` objects to be saved
+     * @param delimiter Default delimiter used is ';'
+     * @returns 
+     */
     writeToCSV(fileName: string, data: ExportProduct[], delimiter: string = ';'): Promise<Boolean> {
         return new Promise<Boolean>((resolve, reject) => {
             csv.stringify(data, async (error, output) => {

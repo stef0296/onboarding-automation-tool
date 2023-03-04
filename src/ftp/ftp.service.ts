@@ -22,6 +22,12 @@ export class FtpService {
         };
     }
 
+    /**
+     * Method to upload a CSV file to the FTP server
+     * @param fileName 
+     * @param filePath 
+     * @returns 
+     */
     uploadFile(fileName: string, filePath: string): Promise<Boolean> {
         return new Promise(async (resolve, reject) => {
             if (!(await fs.readFile(`${filePath}/${fileName}`))) {

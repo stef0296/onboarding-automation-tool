@@ -12,6 +12,11 @@ export class DbService {
         @InjectModel('Product') private productRepository: Model<InternalProduct>
     ) { }
 
+    /**
+     * Method to fetch product details from the database
+     * @param skus Array of SKU ids
+     * @returns 
+     */
     async getProducts(skus: string[]): Promise<InternalProduct[]> {
         const productData: InternalProduct[] = await this.productRepository.find({
             sku: {
