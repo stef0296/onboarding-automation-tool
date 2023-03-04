@@ -26,5 +26,7 @@ export class CsvService {
         });
     }
 
-    writeToCSV(data, delimiter: string = ';') { }
+    async writeToCSV(data, delimiter: string = ';'): Promise<Buffer> {
+        return null;
+    }
 }

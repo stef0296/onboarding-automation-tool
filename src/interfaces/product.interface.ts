@@ -1,4 +1,5 @@
 interface InternalProduct {
+    _id: string,
     sku: string,
     title: { shop: string, title: string }[],
     price: { shop: string, price: string }[],
@@ -8,6 +9,7 @@ interface InternalProduct {
 interface ExportProduct {
     SKU: string;
     Product: string;
+    EAN: string;
     COUNTRY: string;
     TITLE: string;
     QUANTITY: string;

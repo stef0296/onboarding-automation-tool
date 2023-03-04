@@ -8,6 +8,9 @@ import { CsvService } from './csv/csv.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductSchema } from './schema/product.schema';
 import { DbService } from './db/db.service';
+import { ShopifyService } from './shopify/shopify.service';
+import { TranslateService } from './translate/translate.service';
+import { FtpService } from './ftp/ftp.service';
 
 // This is an array of routes we want raw body parsing to be available on
 const rawBodyParsingRoutes: Array<RouteInfo> = [
@@ -34,7 +37,13 @@ const rawBodyParsingRoutes: Array<RouteInfo> = [
     ApiModule,
   ],
   controllers: [ApiController],
-  providers: [CsvService, DbService]
+  providers: [
+    CsvService,
+    DbService,
+    FtpService,
+    ShopifyService,
+    TranslateService,
+  ]
 })
 export class AppModule implements NestModule {
   public configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
