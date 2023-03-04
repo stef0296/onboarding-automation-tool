@@ -30,8 +30,9 @@ export class SchedulerService {
 
     cancelScheduledTask() {
         const job = this.schedulerRegistry.getCronJob(this.taskName);
-        if (!job) {
+        if (job) {
             job.stop();
+            this.schedulerRegistry.deleteCronJob(this.taskName);
         }
     }
 }
