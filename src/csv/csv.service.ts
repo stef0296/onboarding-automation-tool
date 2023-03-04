@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import fs from 'fs/promises';
 import * as csv from 'csv';
 import { ExportProduct } from '../interfaces/product.interface';
 
 @Injectable()
 export class CsvService {
+    private readonly logger = new Logger(CsvService.name);
+
     parseCSV(data, delimiter: string = ';'): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
             csv.parse(data, { delimiter: delimiter, columns: false }, (err, records, info) => {
                 if (err) {
+                    this.logger.error(err, null, 'parseCSV');
                     return reject(err);
                 }
 
@@ -20,7 +23,7 @@ export class CsvService {
                 }
 
                 if (info) {
-                    console.log(`CSV parse info: ${info}`);
+                    this.logger.log(info);
                 }
             });
         });
@@ -30,6 +33,7 @@ export class CsvService {
         return new Promise<Boolean>((resolve, reject) => {
             csv.stringify(data, async (error, output) => {
                 if (error) {
+                    this.logger.error(error, null, 'writeToCSV');
                     reject(error);
                 }
                 await fs.writeFile(fileName, output);

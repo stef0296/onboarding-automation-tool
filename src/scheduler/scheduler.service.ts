@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
@@ -6,6 +6,7 @@ import { CronJob } from 'cron';
 // Reference: https://docs.nestjs.com/techniques/task-scheduling
 @Injectable()
 export class SchedulerService {
+    private readonly logger = new Logger(SchedulerService.name);
     private taskName: string = 'updateMarketPlaceCron';
     constructor(
         private readonly configService: ConfigService,
@@ -26,6 +27,7 @@ export class SchedulerService {
 
         this.schedulerRegistry.addCronJob(this.taskName, job);
         job.start();
+        this.logger.log('Scheduled task started');
     }
 
     cancelScheduledTask() {
@@ -33,6 +35,8 @@ export class SchedulerService {
         if (job) {
             job.stop();
             this.schedulerRegistry.deleteCronJob(this.taskName);
+
+            this.logger.log('Scheduled task stopped');
         }
     }
 }
