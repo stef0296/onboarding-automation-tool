@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CsvService } from '../csv/csv.service';
 import { DbService } from '../db/db.service';
+import { FtpService } from '../ftp/ftp.service';
 import { ProductSchema } from '../schema/product.schema';
+import { ShopifyService } from '../shopify/shopify.service';
+import { TranslateService } from '../translate/translate.service';
 import { ApiController } from './api.controller';
 
 @Module({
@@ -12,6 +15,12 @@ import { ApiController } from './api.controller';
         ),
     ],
     controllers: [ApiController],
-    providers: [CsvService, DbService]
+    providers: [
+        CsvService,
+        DbService,
+        FtpService,
+        ShopifyService,
+        TranslateService,
+    ]
 })
 export class ApiModule { }
