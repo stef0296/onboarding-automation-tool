@@ -40,6 +40,14 @@ export class ApiController {
         private readonly translateService: TranslateService,
     ) { }
 
+    /**
+     * PUT request to accept CSV file upload
+     * 
+     * @param headers Request headers
+     * @param response Response object
+     * @param fileBuffer CSV file buffer
+     * @returns void
+     */
     @Put('/upload/:fileName')
     async uploadCsvFile(
         @Headers() headers,
