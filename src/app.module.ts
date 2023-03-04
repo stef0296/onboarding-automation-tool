@@ -6,11 +6,13 @@ import { FileBufferMiddleware } from './middleware/filebuffer.middleware';
 import { ApiModule } from './api/api.module';
 import { CsvService } from './csv/csv.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ProductSchema } from './schema/product.schema';
 import { DbService } from './db/db.service';
 import { ShopifyService } from './shopify/shopify.service';
 import { TranslateService } from './translate/translate.service';
 import { FtpService } from './ftp/ftp.service';
+import { SchedulerService } from './scheduler/scheduler.service';
 
 // This is an array of routes we want raw body parsing to be available on
 const rawBodyParsingRoutes: Array<RouteInfo> = [
@@ -34,6 +36,7 @@ const rawBodyParsingRoutes: Array<RouteInfo> = [
     MongooseModule.forFeature(
       [{ name: 'Product', schema: ProductSchema }]
     ),
+    ScheduleModule.forRoot(),
     ApiModule,
   ],
   controllers: [ApiController],
@@ -42,6 +45,7 @@ const rawBodyParsingRoutes: Array<RouteInfo> = [
     DbService,
     FtpService,
     ShopifyService,
+    SchedulerService,
     TranslateService,
   ]
 })
