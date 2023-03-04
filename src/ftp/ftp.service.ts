@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Client from 'ftp';
+import fs from 'fs/promises';
 
 @Injectable()
 export class FtpService {
@@ -18,13 +19,23 @@ export class FtpService {
         };
     }
 
-    async uploadFile(fileName: string, buffer: Buffer) {
-        this.client.on('ready', () => {
-            this.client.put(buffer, fileName, (err) => {
-                if (err) throw err;
-                this.client.end();
+    uploadFile(fileName: string, filePath: string): Promise<Boolean> {
+        return new Promise(async (resolve, reject) => {
+            if (!(await fs.readFile(`${filePath}/${fileName}`))) {
+                reject('File does not exist!');
+            }
+            let buffer: Buffer = await fs.readFile(`${filePath}/${fileName}`);
+
+            this.client.on('ready', () => {
+                this.client.put(buffer, fileName, (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    this.client.end();
+                    resolve(true);
+                });
             });
+            this.client.connect(this.connectionOptions);
         });
-        this.client.connect(this.connectionOptions);
     }
 }
