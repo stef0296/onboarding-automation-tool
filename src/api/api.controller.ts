@@ -101,6 +101,13 @@ export class ApiController {
         }
     }
 
+    /**
+     * Combine data from MongoDB and Shopify to build data to export
+     * 
+     * @param dbData Array of data from MongoDB
+     * @param productVariants Array of product variants from Shopify
+     * @returns Array of `ExportProduct`
+     */
     async aggregateData(
         dbData: InternalProduct[],
         productVariants: Shopify.IProductVariant[]
