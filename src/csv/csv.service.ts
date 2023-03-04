@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import fs from 'fs';
+import fs from 'fs/promises';
 import * as csv from 'csv';
+import { ExportProduct } from '../interfaces/product.interface';
 
 @Injectable()
 export class CsvService {
     parseCSV(data, delimiter: string = ';'): Promise<string[]> {
         return new Promise<string[]>((resolve, reject) => {
-            csv.parse(data, { delimiter: delimiter }, (err, records, info) => {
+            csv.parse(data, { delimiter: delimiter, columns: false }, (err, records, info) => {
                 if (err) {
                     return reject(err);
                 }
@@ -15,7 +16,6 @@ export class CsvService {
                     // An assumption is made here that the document has only one column with the SKUs.
                     // If there are more columns, we'd define a data model and map it to that.
                     let mappedRecords: string[] = records.map((items) => items[0]);
-                    mappedRecords.shift();
                     resolve(mappedRecords);
                 }
 
@@ -26,7 +26,15 @@ export class CsvService {
         });
     }
 
-    async writeToCSV(data, delimiter: string = ';'): Promise<Buffer> {
-        return null;
+    writeToCSV(fileName: string, data: ExportProduct[], delimiter: string = ';'): Promise<Boolean> {
+        return new Promise<Boolean>((resolve, reject) => {
+            csv.stringify(data, async (error, output) => {
+                if (error) {
+                    reject(error);
+                }
+                await fs.writeFile(fileName, output);
+                resolve(true);
+            });
+        });
     }
 }
