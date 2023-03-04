@@ -7,6 +7,7 @@ import {
     Res,
     Put,
     BadRequestException,
+    Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import Shopify from 'shopify-api-node';
@@ -28,6 +29,7 @@ export const FileBuffer = createParamDecorator(
 
 @Controller('api')
 export class ApiController {
+    private readonly logger = new Logger(ApiController.name);
 
     constructor(
         private readonly csvService: CsvService,
@@ -38,6 +40,14 @@ export class ApiController {
         private readonly translateService: TranslateService,
     ) { }
 
+    /**
+     * PUT request to accept CSV file upload
+     * 
+     * @param headers Request headers
+     * @param response Response object
+     * @param fileBuffer CSV file buffer
+     * @returns void
+     */
     @Put('/upload/:fileName')
     async uploadCsvFile(
         @Headers() headers,
@@ -56,7 +66,7 @@ export class ApiController {
 
             return response.status(HttpStatus.OK).json('Upload Success!!');
         } catch (err) {
-            console.log(err);
+            this.logger.error(err, null, 'uploadCsvFile');
         }
     }
 
@@ -68,6 +78,9 @@ export class ApiController {
             let ids: string[] = dbData.map((item) => item._id);
             let productVariants = await this.shopifyService.fetchProducts(ids);
             let exportProducts: ExportProduct[] = await this.aggregateData(dbData, productVariants);
+            if (!exportProducts) {
+                throw new Error('Error occured while aggregating data');
+            }
 
             // Write data to CSV
             let date: Date = new Date();
@@ -84,7 +97,7 @@ export class ApiController {
                 // Update `exportProducts` via API
             }
         } catch (error) {
-            console.log(error);
+            this.logger.error(error, null, 'processCSVUpload');
         }
     }
 
@@ -92,58 +105,63 @@ export class ApiController {
         dbData: InternalProduct[],
         productVariants: Shopify.IProductVariant[]
     ): Promise<ExportProduct[]> {
-        let exportProducts: ExportProduct[] = [];
+        try {
+            let exportProducts: ExportProduct[] = [];
 
-        for (let item of dbData) {
-            let titleIndex = item.title.findIndex((title) => title.shop.toLowerCase() == 'en');
-            let title = titleIndex != -1 ? item.title[titleIndex].title : null;
-            title = await this.translateService.translateContent(title);
+            for (let item of dbData) {
+                let titleIndex = item.title.findIndex((title) => title.shop.toLowerCase() == 'en');
+                let title = titleIndex != -1 ? item.title[titleIndex].title : null;
+                title = await this.translateService.translateContent(title);
 
-            let priceIndex = item.price.findIndex((price) => price.shop.toLowerCase() == 'en');
-            let price = priceIndex != -1 ? item.price[priceIndex].price : null;
+                let priceIndex = item.price.findIndex((price) => price.shop.toLowerCase() == 'en');
+                let price = priceIndex != -1 ? item.price[priceIndex].price : null;
 
-            let categoryIndex = item.categories.findIndex((category) => category.shop.toLowerCase() == 'en');
-            let categories = priceIndex != -1 ? item.categories[categoryIndex].categories.join(',') : null;
+                let categoryIndex = item.categories.findIndex((category) => category.shop.toLowerCase() == 'en');
+                let categories = priceIndex != -1 ? item.categories[categoryIndex].categories.join(',') : null;
 
-            /**
-             * Based on the shopify documentation, each product can have up to 3 options. The options can be different from product to product. For example, one product can use size, color, and style, and another product can use weight, finish, and material.
-             * 
-             * Keeping this in mind, we make the following assumption:
-             * option1: SIZE
-             * option2: COLOR
-             * option3: STYLE
-             * 
-             * Reference: https://help.shopify.com/en/manual/products/variants/add-variants
-             */
-            let itemVariants = (await productVariants).filter((variant) => variant.product_id.toString() == item._id);
-            for (let itemVariant of itemVariants) {
-                let color = await this.translateService.translateContent(itemVariant.option2);
-                let exportProduct: ExportProduct = {
-                    SKU: `${item.sku}-${itemVariant.option1}`,
-                    Product: item.sku,
-                    EAN: itemVariant.barcode,
-                    COUNTRY: 'ES',
-                    TITLE: title,
-                    QUANTITY: `${itemVariant.inventory_quantity}`,
-                    PRICE: price,
-                    SIZE: itemVariant.option1,
-                    CATEGORY: categories,
-                    Color: color,
-                    IMAGE1: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-1`,
-                    IMAGE2: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-2`,
-                    IMAGE3: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-3`,
-                    IMAGE4: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-4`,
-                    IMAGE5: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-5`,
-                    IMAGE6: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-6`,
-                    FIT: '',
-                    STYLE: itemVariant.option3,
-                    WIDTH: '',
-                    LENGHT: '',
+                /**
+                 * Based on the shopify documentation, each product can have up to 3 options. The options can be different from product to product. For example, one product can use size, color, and style, and another product can use weight, finish, and material.
+                 * 
+                 * Keeping this in mind, we make the following assumption:
+                 * option1: SIZE
+                 * option2: COLOR
+                 * option3: STYLE
+                 * 
+                 * Reference: https://help.shopify.com/en/manual/products/variants/add-variants
+                 */
+                let itemVariants = (await productVariants).filter((variant) => variant.product_id.toString() == item._id);
+                for (let itemVariant of itemVariants) {
+                    let color = await this.translateService.translateContent(itemVariant.option2);
+                    let exportProduct: ExportProduct = {
+                        SKU: `${item.sku}-${itemVariant.option1}`,
+                        Product: item.sku,
+                        EAN: itemVariant.barcode,
+                        COUNTRY: 'ES',
+                        TITLE: title,
+                        QUANTITY: `${itemVariant.inventory_quantity}`,
+                        PRICE: price,
+                        SIZE: itemVariant.option1,
+                        CATEGORY: categories,
+                        Color: color,
+                        IMAGE1: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-1`,
+                        IMAGE2: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-2`,
+                        IMAGE3: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-3`,
+                        IMAGE4: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-4`,
+                        IMAGE5: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-5`,
+                        IMAGE6: `https://ivy-oak.com/IVYOAK/${item.sku}/${item.sku}-6`,
+                        FIT: '',
+                        STYLE: itemVariant.option3,
+                        WIDTH: '',
+                        LENGHT: '',
+                    };
+                    exportProducts.push(exportProduct);
                 };
-                exportProducts.push(exportProduct);
-            };
-        }
+            }
 
-        return exportProducts;
+            return exportProducts;
+        } catch (error) {
+            this.logger.error(error, null, 'aggregateData');
+            return null;
+        }
     }
 }

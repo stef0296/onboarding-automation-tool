@@ -50,6 +50,8 @@ const rawBodyParsingRoutes: Array<RouteInfo> = [
   ]
 })
 export class AppModule implements NestModule {
+
+  // configure middleware to handle file uploads
   public configure(consumer: MiddlewareConsumer): MiddlewareConsumer | void {
     consumer
       .apply(FileBufferMiddleware)
